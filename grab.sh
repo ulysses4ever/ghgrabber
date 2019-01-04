@@ -13,12 +13,14 @@ function retrieve_commit_metadata {
 
 function retrieve_commit_file_modification_info {
     echo '"hash","added lines", "deleted lines", "file"'
-    git log --pretty=format:-----%H:::  --all --numstat | awk -f "${home}/numstat.awk"
+    git log --pretty=format:-----%H:::  --all --numstat | \
+        awk -f "${home}/numstat.awk"
 }
 
 function retrieve_commit_comments {
     echo '"hash","topic","message"'
-    git log --pretty=format:"-----%H:::%s:::%B"  --all | awk -f "${home}/comment.awk"
+    git log --pretty=format:"-----%H:::%s:::%B"  --all | \
+        awk -f "${home}/comment.awk"
 }
 
 function prepare_directories {
@@ -43,6 +45,8 @@ function process_repository {
     retrieve_commit_comments > "${home}/commit_comments/${filename}"
 
     cd "$home"
+
+    #rm -r "${repository_path}"
 }
 
 function print_time {
@@ -70,6 +74,7 @@ do
     start_time=$(date +%s)
     process_repository $user $repo
     end_time=$(date +%s)
-    echo "\"${user}\"","\"${repo}\"",$(print_time $((end_time - start_time))) >> timing.csv
+    echo "\"${user}\"","\"${repo}\"",$(print_time $((end_time - start_time))) \
+        >> timing.csv
 done
  
