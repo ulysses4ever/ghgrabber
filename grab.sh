@@ -17,7 +17,7 @@ function retrieve_commit_file_modification_info {
 }
 
 function retrieve_commit_comments {
-    echo '"hash"'
+    echo '"hash","topic","message"'
     git log --pretty=format:"-----%H:::%s:::%B"  --all | awk -f "${home}/comment.awk"
 }
 
@@ -59,7 +59,7 @@ function print_time {
 }
 
 prepare_directories
-echo "\"user\",\"repo\",\"time\"" > timing.csv
+echo '"user","repo","time"' > timing.csv
 for info in `cat repos.list`
 do
     echo processing $info
