@@ -25,6 +25,15 @@ BEGIN {
 # auxiliary function to add quotes around strings
 function quote(string) { return "\"" string "\"" }
 
+# auxiliary function that reformats a string by escaping slashes, double
+# quotes, and newlines
+function escape(string) {
+    gsub("\\", "\\\\", string);
+    gsub("\n", "\\n", string);
+    gsub("\"", "\\\"", string);
+    return string
+}
+
 # for each input record
 {
     # first split the second field into separate lines
@@ -41,7 +50,7 @@ function quote(string) { return "\"" string "\"" }
 
             # for each modified file output the hash of the commit, and the
             # stat info for the file
-            print quote($1) , statline[1], statline[2], quote(statline[3]);
+            print quote($1) , statline[1], statline[2], quote(escape(statline[3]));
         }
     }
 }
