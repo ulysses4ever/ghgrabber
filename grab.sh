@@ -24,28 +24,28 @@ function retrieve_commit_comments {
 }
 
 function retrieve_commit_parents {
-    #echo '"child","parent"'
+    echo '"child","parent"'
     git log --pretty=format:"%H %P" | awk '{for(i=2; i<=NF; i++) print "\""$1"\",\""$i"\""}'
 }
 
 function retrieve_commit_repositories {
-    #echo '"hash","id"'
+    echo '"hash","id"'
     git log --pretty=format:"\"%H\",$1"
 }
 
 function retrieve_repository_info {
-    #echo '"id", "user", "project"'
+    echo '"id", "user", "project"'
     echo "${3},\"${1}\",\"${2}\""
 }
 
 function prepare_directories {
     home="$(pwd)"
-    mkdir -p commit_metadata
-    mkdir -p commit_files
-    mkdir -p commit_comments
-    mkdir -p commit_parents
-    mkdir -p commit_repositories
-    mkdir -p repository_info
+    mkdir -p data/commit_metadata
+    mkdir -p data/commit_files
+    mkdir -p data/commit_comments
+    mkdir -p data/commit_parents
+    mkdir -p data/commit_repositories
+    mkdir -p data/repository_info
 }
 
 function process_repository {
@@ -58,12 +58,12 @@ function process_repository {
     local repository_path="$(download_repo_contents $user $repo)"
     cd "${repository_path}"
 
-    retrieve_commit_metadata > "${home}/commit_metadata/${filename}"
-    retrieve_commit_file_modification_info > "${home}/commit_files/${filename}"
-    retrieve_commit_comments > "${home}/commit_comments/${filename}"
-    retrieve_commit_parents > "${home}/commit_parents/${filename}"
-    retrieve_commit_repositories $i > "${home}/commit_repositories/${filename}"
-    retrieve_repository_info $user $repo $i > "${home}/repository_info/${filename}"
+    retrieve_commit_metadata                > "${home}/data/commit_metadata/${filename}"
+    retrieve_commit_file_modification_info  > "${home}/data/commit_files/${filename}"
+    retrieve_commit_comments                > "${home}/data/commit_comments/${filename}"
+    retrieve_commit_parents                 > "${home}/data/commit_parents/${filename}"
+    retrieve_commit_repositories $i         > "${home}/data/commit_repositories/${filename}"
+    retrieve_repository_info $user $repo $i > "${home}/data/repository_info/${filename}"
 
     cd "$home"
 
