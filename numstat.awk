@@ -46,7 +46,7 @@ function escape(string) {
         } else {
             # split the statline into number of added lines, removed lines, and
             # the name of the file
-            split(stats[i], statline, /\s+/);
+            split(stats[i], statline, /[ \t]+/);
 
             # for each modified file output the hash of the commit, and the
             # stat info for the file
