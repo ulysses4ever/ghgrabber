@@ -8,18 +8,18 @@ function download_repo_contents {
 
 function retrieve_commit_metadata {
     echo '"hash","author name","author email","author timestamp","committer name","committer email","committer timestamp"'
-    git log --pretty=format:'"%H","%an","%ae","%ad","%cn","%ce","%ct"' --all
+    git log --pretty=format:'"%H","%an","%ae","%at","%cn","%ce","%ct"' --all 
 }
 
 function retrieve_commit_file_modification_info {
     echo '"hash","added lines", "deleted lines", "file"'
-    git log --pretty=format:-----%H:::  --all --numstat | \
+    git log --pretty=format:-----%H:::  --numstat --all | \
         awk -f "${home}/numstat.awk"
 }
 
 function retrieve_commit_comments {
     echo '"hash","topic","message"'
-    git log --pretty=format:"-----%H:::%s:::%B"  --all | \
+    git log --pretty=format:"-----%H:::%s:::%B"  | \
         awk -f "${home}/comment.awk"
 }
 
@@ -46,7 +46,7 @@ function process_repository {
 
     cd "$home"
 
-    #rm -r "${repository_path}"
+    rm -fr "${repository_path}"
 }
 
 function print_time {
