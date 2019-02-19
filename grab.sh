@@ -12,7 +12,7 @@ function retrieve_commit_metadata {
 }
 
 function retrieve_commit_file_modification_info {
-    echo '"hash","added lines", "deleted lines", "file"'
+    echo '"hash","added lines","deleted lines","file"'
     git log --pretty=format:-----%H:::  --numstat --all | \
         awk -f "${home}/numstat.awk"
 }
@@ -34,7 +34,7 @@ function retrieve_commit_repositories {
 }
 
 function retrieve_repository_info {
-    echo '"id", "user", "project"'
+    echo '"id","user","project"'
     echo "${3},\"${1}\",\"${2}\""
 }
 
