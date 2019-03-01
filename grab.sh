@@ -14,18 +14,19 @@ function retrieve_commit_metadata {
 function retrieve_commit_file_modification_info {
     echo '"hash","added lines","deleted lines","file"'
     git log --pretty=format:-----%H:::  --numstat --all | \
-        awk -f "${home}/numstat.awk"
+        awk -f "${home}/awk/numstat.awk"
 }
 
 function retrieve_commit_comments {
     echo '"hash","topic","message"'
     git log --pretty=format:"-----%H:::%s:::%B"  --all | \
-        awk -f "${home}/comment.awk"
+        awk -f "${home}/awk/comment.awk"
 }
 
 function retrieve_commit_parents {
     echo '"child","parent"'
-    git log --pretty=format:"%H %P" | awk '{for(i=2; i<=NF; i++) print "\""$1"\",\""$i"\""}'
+    git log --pretty=format:"%H %P" | \
+        awk '{for(i=2; i<=NF; i++) print "\""$1"\",\""$i"\""}'
 }
 
 function retrieve_commit_repositories {
@@ -39,13 +40,12 @@ function retrieve_repository_info {
 }
 
 function prepare_directories {
-    home="$(pwd)"
-    mkdir -p data/commit_metadata
-    mkdir -p data/commit_files
-    mkdir -p data/commit_comments
-    mkdir -p data/commit_parents
-    mkdir -p data/commit_repositories
-    mkdir -p data/repository_info
+    mkdir -p "$OUTPUT_DIR/commit_metadata"
+    mkdir -p "$OUTPUT_DIR/commit_files"
+    mkdir -p "$OUTPUT_DIR/commit_comments"
+    mkdir -p "$OUTPUT_DIR/commit_parents"
+    mkdir -p "$OUTPUT_DIR/commit_repositories"
+    mkdir -p "$OUTPUT_DIR/repository_info"
 }
 
 function process_repository {
@@ -58,18 +58,19 @@ function process_repository {
     local repository_path="$(download_repo_contents $user $repo)"
     cd "${repository_path}"
 
-    retrieve_commit_metadata                > "${home}/data/commit_metadata/${filename}"
-    retrieve_commit_file_modification_info  > "${home}/data/commit_files/${filename}"
-    retrieve_commit_comments                > "${home}/data/commit_comments/${filename}"
-    retrieve_commit_parents                 > "${home}/data/commit_parents/${filename}"
-    retrieve_commit_repositories $i         > "${home}/data/commit_repositories/${filename}"
-    retrieve_repository_info $user $repo $i > "${home}/data/repository_info/${filename}"
+    retrieve_commit_metadata                > "$OUTPUT_DIR/commit_metadata/${filename}"
+    retrieve_commit_file_modification_info  > "$OUTPUT_DIR/commit_files/${filename}"
+    retrieve_commit_comments                > "$OUTPUT_DIR/commit_comments/${filename}"
+    retrieve_commit_parents                 > "$OUTPUT_DIR/commit_parents/${filename}"
+    retrieve_commit_repositories $i         > "$OUTPUT_DIR/commit_repositories/${filename}"
+    retrieve_repository_info $user $repo $i > "$OUTPUT_DIR/repository_info/${filename}"
 
     cd "$home"
 
     if expr ${repository_path} : '/tmp/tmp\...........' >/dev/null
     then
-        rm -rfv "${repository_path}"
+        echo "Removing '${repository_path}'"
+        rm -rf "${repository_path}"
     fi
 }
 
@@ -86,15 +87,38 @@ function print_time {
     echo ${hours}:${min_extra_zero}${minutes}:${sec_extra_zero}${seconds}
 }
 
+function use_first_if_available {
+    [ -n "$1" ] && echo "$1" || echo "$2"
+}
+
 echo 'Hi!'
+
+REPOS_LIST=`use_first_if_available "$1" "repos.list"`
+OUTPUT_DIR=`use_first_if_available "$2" "data"`
+home="$(pwd)"
+
+if expr "$OUTPUT_DIR" : "^/" >/dev/null 
+then 
+    :
+else 
+    OUTPUT_DIR="$home/$OUTPUT_DIR"
+fi
+
+echo "Downloading repos from '$REPOS_LIST' to '$OUTPUT_DIR'"
 
 prepare_directories
 echo '"user","repo","time"' > timing.csv
 
 i=0
-for info in `cat repos.list`
+for info in `cat "$REPOS_LIST"`
 do
     i=$(( $i + 1 ))
+
+    if [ -e "STOP" ]
+    then
+        echo "detected STOP file, stopping"
+        break
+    fi
 
     echo processing $i $info
 
@@ -105,7 +129,6 @@ do
     process_repository $user $repo $i
     end_time=$(date +%s)
     echo "\"${user}\"","\"${repo}\"",$(print_time $((end_time - start_time))) \
-        >> timing.csv
+        >> "$OUTPUT_DIR/timing.csv"
 done
-
 
