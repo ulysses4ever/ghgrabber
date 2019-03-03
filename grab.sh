@@ -2,7 +2,8 @@
 
 function download_repo_contents {
     local destination=$(mktemp --directory)
-    git clone "https://github.com/$1/$2.git" "$destination"
+    GIT_TERMINAL_PROMPT=0 git clone "https://github.com/$1/$2.git" "$destination"
+    #git clone "ssh://git@github.com/$1/$2.git" "$destination"
     echo "$destination"
 }
 
