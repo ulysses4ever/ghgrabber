@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function escape_quotes {
+    echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 function download_repo_contents {
     local destination=$(mktemp --directory)
     GIT_TERMINAL_PROMPT=0 git clone "https://github.com/$1/$2.git" "$destination"
@@ -8,8 +12,8 @@ function download_repo_contents {
 }
 
 function retrieve_commit_metadata {
-    echo '"hash","author name","author email","author timestamp","committer name","committer email","committer timestamp"'
-    git log --pretty=format:'"%H","%an","%ae","%at","%cn","%ce","%ct"' --all 
+    echo '"hash","author name","author email","author timestamp","committer name","committer email","committer timestamp","tag"'
+    git log --pretty=format:'"%H","%an","%ae","%at","%cn","%ce","%ct","%s","%D"' --all 
 }
 
 function retrieve_commit_file_modification_info {
@@ -17,6 +21,7 @@ function retrieve_commit_file_modification_info {
     git log --pretty=format:-----%H:::  --numstat --all | \
         awk -f "${home}/awk/numstat.awk"
 }
+
 
 function retrieve_commit_comments {
     echo '"hash","topic","message"'
