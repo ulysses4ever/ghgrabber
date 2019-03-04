@@ -34,13 +34,71 @@ function use_first_if_available {
     [ -n "$1" ] && echo "$1" || echo "$2"
 }
 
+# Sequence control.
+function sequence_new {
+    if [ -z "$2" ]
+    then
+        value=0
+    else
+        value="$2"
+    fi
+
+    if [ -e "$1" ]
+    then
+        echo "File '$1' already exists:" >&2
+        echo "  - not creating a new sequence" >&2
+        echo "  - not resetting current value" >&2
+        echo "  - current value is '$(cat $1)'" >&2
+        return 1
+    else
+        echo -n "$value" > "$1" 
+        return 0
+    fi
+}
+function sequence_current_value {
+    if [ -e "$1" ]
+    then
+        cat "$1"
+        return $?
+    else
+        echo "File '$1' does not exist" >&2
+        echo "  - returning 0, but this is a fake value" >&2
+        echo -n 0
+        return 1
+    fi
+}
+function sequence_next_value {
+    current_value=$(sequence_current_value "$1")
+   
+    if [ $? -ne 0 ]
+    then
+        return $?
+    fi
+
+    next_value=$(( $current_value + 1 ))
+
+    if [ -z "$next_value" ]
+    then
+        echo "Sequence value is weird" >&2
+        echo "  - new value is supposed to be '$next_value'" >&2
+        echo "  - old value was read as '$next_value'" >&2
+        echo "  - returning 0, but this is a fake value" >&2
+        echo -n 0
+        return 1
+    fi
+
+    echo -n $next_value
+    echo -n $next_value > "$1" 
+    return $?
+}
+
 # Toplevel functions that set up the scraper.
 function prepare_globals {
     export REPOS_LIST=`use_first_if_available "$1" "repos.list"`
     export OUTPUT_DIR=`use_first_if_available "$2" "data"`
     export GHGRABBER_HOME="$(pwd)"
-
-    processed=0
+    
+    PROCESSES=`use_first_if_available "$3" 1`
 
     if expr "$OUTPUT_DIR" : "^/" >/dev/null 
     then 
@@ -48,6 +106,9 @@ function prepare_globals {
     else 
         OUTPUT_DIR="$GHGRABBER_HOME/$OUTPUT_DIR"
     fi
+
+    export SEQUENCE="$OUTPUT_DIR/sequence.val"
+    sequence_new "$SEQUENCE" 0
 }
 function prepare_directories {
     mkdir -p "$OUTPUT_DIR/commit_metadata"
@@ -138,16 +199,16 @@ function process_repository {
 
 # Pre-process arguments and start processing a single repository.
 function download_and_analyze_repository {
-    processed=$(( $processed + 1 ))
+    local processed=$(sem --id ghgrabber_sequence sequence_next_value "$SEQUENCE")
     local info="$1"
 
     if [ -e "STOP" ]
     then
         echo [[ detected STOP file, stopping ]]
-        break
+        exit 1
     fi
 
-    err_echo [[ processing $processed $info ]]
+    err_echo [[ processing $processed: $info "(pid=$$)" ]]
 
     user=$(echo $info | cut -f1 -d/)
     repo=$(echo $info | cut -f2 -d/)
@@ -181,13 +242,16 @@ export -f retrieve_commit_repositories
 export -f retrieve_repository_info
 export -f process_repository
 export -f download_and_analyze_repository
+export -f sequence_new
+export -f sequence_current_value
+export -f sequence_next_value
 
 # Main.
-prepare_globals
+prepare_globals "$@"
 prepare_directories
 timing_init "user" "repo" "$OUTPUT_DIR/timing.csv"
 
-echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" ]]
+echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
 
-<"$REPOS_LIST" parallel -k --lb -j 1 download_and_analyze_repository
-
+echo '<'"$REPOS_LIST" parallel -k --lb --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
+<"$REPOS_LIST" parallel -k --lb --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
