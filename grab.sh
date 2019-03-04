@@ -2,7 +2,7 @@
 
 # Timing helper functions
 function timing_init   { 
-    echo "\"$1\",\"$2\",\"time\"" > "$3"; 
+    echo "\"$1\",\"$2\",\"time\",\"status\"" > "$3"; 
 }
 function timing_start  { date +%s; }
 function timing_end    { date +%s; }
@@ -19,8 +19,8 @@ function timing_print  {
     echo ${hours}:${min_extra_zero}${minutes}:${sec_extra_zero}${seconds}
 }
 function timing_output { 
-    echo "\"${1}\"","\"${2}\"",$(timing_print $((${4} - ${3}))) \
-        >> "$5"
+    echo "\"${1}\"","\"${2}\"",$(timing_print $((${4} - ${3}))),${5} \
+        >> "$6"
 }
 
 # Misc. auxiliary functions.
@@ -125,7 +125,14 @@ function download_repo_contents {
     err_echo [[ downloading repo contents ]]
     local destination=$(mktemp --directory)
     GIT_TERMINAL_PROMPT=0 git clone "https://github.com/$1/$2.git" "$destination"
+    
+    if [ $? -ne 0 ] 
+    then
+        return $?   
+    fi
+
     echo "$destination"
+    return 0
 }
 
 # Functions for retrieving specific bits of information form one repository.
@@ -178,6 +185,12 @@ function process_repository {
     local filename="${user}_${repo}.csv"
 
     local repository_path="$(download_repo_contents $user $repo)"
+    if [ -z "$repository_path" ]
+    then
+        err_echo [[ did not retreive repository for $user/$repo, exiting ]]
+        exit 1
+    fi
+
     cd "${repository_path}"
 
     retrieve_commit_metadata                 > "$OUTPUT_DIR/commit_metadata/${filename}"
@@ -190,10 +203,13 @@ function process_repository {
 
     cd "$GHGRABBER_HOME"
 
-    if expr ${repository_path} : '/tmp/tmp\...........' >/dev/null
+    if [ -n ${repository_path} ]
     then
-        echo "Removing '${repository_path}'"
-        rm -rf "${repository_path}"
+        if expr ${repository_path} : '/tmp/tmp\...........' >/dev/null
+        then
+            echo "Removing '${repository_path}'"
+            rm -rf "${repository_path}"
+        fi
     fi
 }
 
@@ -215,10 +231,11 @@ function download_and_analyze_repository {
     
     local start_time=$(timing_start)
     process_repository "$user" "$repo" "$processed"
+    local status=$?
     local end_time=$(timing_end)
 
     sem --id ghgrabber_timing \
-    timing_output "$user" "$repo" "$start_time" "$end_time" "$OUTPUT_DIR/timing.csv"
+    timing_output "$user" "$repo" "$start_time" "$end_time" "$status" "$OUTPUT_DIR/timing.csv" 
 }
 
 # Export all the functions that parallel needs.
@@ -253,5 +270,4 @@ timing_init "user" "repo" "$OUTPUT_DIR/timing.csv"
 
 echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
 
-echo '<'"$REPOS_LIST" parallel -k --lb --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
-<"$REPOS_LIST" parallel -k --lb --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
+<"$REPOS_LIST" parallel --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
