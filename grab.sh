@@ -28,7 +28,12 @@ function escape_quotes {
     echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
 function err_echo {
-    echo $@ >&2
+    if [ -n "$ECHO_PREFIX" ]
+    then
+       echo "[ $ECHO_PREFIX ]" $@ >&2 
+    else
+        echo $@ >&2
+    fi
 }
 function use_first_if_available {
     [ -n "$1" ] && echo "$1" || echo "$2"
@@ -99,6 +104,7 @@ function prepare_globals {
     export GHGRABBER_HOME="$(pwd)"
     
     PROCESSES=`use_first_if_available "$3" 1`
+    ECHO_PREFIX=main
 
     if expr "$OUTPUT_DIR" : "^/" >/dev/null 
     then 
@@ -112,7 +118,7 @@ function prepare_globals {
 }
 function prepare_directories {
     mkdir -p "$OUTPUT_DIR/commit_metadata"
-    mkdir -p "$OUTPUT_DIR/commit_files"
+    #mkdir -p "$OUTPUT_DIR/commit_files"
     mkdir -p "$OUTPUT_DIR/commit_file_hashes"
     mkdir -p "$OUTPUT_DIR/commit_comments"
     mkdir -p "$OUTPUT_DIR/commit_parents"
@@ -188,13 +194,13 @@ function process_repository {
     if [ -z "$repository_path" ]
     then
         err_echo [[ did not retreive repository for $user/$repo, exiting ]]
-        exit 1
+        return 1
     fi
 
     cd "${repository_path}"
 
     retrieve_commit_metadata                 > "$OUTPUT_DIR/commit_metadata/${filename}"
-    retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/${filename}"
+    #retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/${filename}"
     retrieve_commit_file_modification_hashes > "$OUTPUT_DIR/commit_file_hashes/${filename}"
     retrieve_commit_comments                 > "$OUTPUT_DIR/commit_comments/${filename}"
     retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/${filename}"
@@ -218,6 +224,8 @@ function download_and_analyze_repository {
     local processed=$(sem --id ghgrabber_sequence sequence_next_value "$SEQUENCE")
     local info="$1"
 
+    ECHO_PREFIX="task ${processed}: $info"
+
     if [ -e "STOP" ]
     then
         echo [[ detected STOP file, stopping ]]
@@ -236,6 +244,9 @@ function download_and_analyze_repository {
 
     sem --id ghgrabber_timing \
     timing_output "$user" "$repo" "$start_time" "$end_time" "$status" "$OUTPUT_DIR/timing.csv" 
+
+    err_echo [[ done with status $? ]]
+    return 0
 }
 
 # Export all the functions that parallel needs.
@@ -269,5 +280,7 @@ prepare_directories
 timing_init "user" "repo" "$OUTPUT_DIR/timing.csv"
 
 echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
+echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
 
-<"$REPOS_LIST" parallel --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
+#<"$REPOS_LIST" parallel -v -k --ungroup --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
+<"$REPOS_LIST" parallel -v -k --ungroup -j $PROCESSES download_and_analyze_repository 
