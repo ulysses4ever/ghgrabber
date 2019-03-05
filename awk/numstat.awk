@@ -50,7 +50,8 @@ function escape(string) {
 
             # for each modified file output the hash of the commit, and the
             # stat info for the file
-            print quote($1) , statline[1], statline[2], quote(escape(statline[3]));
+            #print quote($1) , statline[1], statline[2], quote(escape(statline[3]));
+            print $1, statline[1], statline[2], quote(escape(statline[3]));
         }
     }
 }

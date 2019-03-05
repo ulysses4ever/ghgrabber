@@ -120,8 +120,8 @@ function prepare_directories {
     mkdir -p "$OUTPUT_DIR/commit_file_hashes/$1"
     mkdir -p "$OUTPUT_DIR/commit_comments/$1"
     mkdir -p "$OUTPUT_DIR/commit_parents/$1"
-    mkdir -p "$OUTPUT_DIR/commit_repositories/$1"
-    mkdir -p "$OUTPUT_DIR/repository_info/$1"
+    #mkdir -p "$OUTPUT_DIR/commit_repositories/$1"
+    #mkdir -p "$OUTPUT_DIR/repository_info/$1"
 }
 
 # Function for downloading the contents of one repository.
@@ -142,8 +142,8 @@ function download_repo_contents {
 # Functions for retrieving specific bits of information form one repository.
 function retrieve_commit_metadata {
     err_echo [[ retrieving commit metadata ]]
-    echo '"hash","author name","author email","author timestamp","committer name","committer email","committer timestamp","tag"'
-    git log --pretty=format:'"%H","%an","%ae","%at","%cn","%ce","%ct","%D"' --all 
+    echo '"hash","author email","author timestamp","committer email","committer timestamp","tag"'
+    git log --pretty=format:'"%H","%ae","%at","%ce","%ct","%D"' --all 
 }
 function retrieve_commit_file_modification_info {
     err_echo [[ retrieving commit file modification info ]]
@@ -153,7 +153,8 @@ function retrieve_commit_file_modification_info {
 }
 function retrieve_commit_file_modification_hashes {
     err_echo [[ retrieving commit file modification hashes ]]
-    echo '"hash","source file hash","current file hash","status code","file"'
+    #echo '"hash","source file hash","current file hash","status code","file"'
+    echo '"hash","file hash","status code","file"'
     git log --format="%n%n%h" --raw --abbrev=40 --all | \
         awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }
@@ -167,7 +168,7 @@ function retrieve_commit_parents {
     err_echo [[ retrieving commit parents ]]
     echo '"child","parent"'
     git log --pretty=format:"%H %P" | \
-        awk '{for(i=2; i<=NF; i++) print "\""$1"\",\""$i"\""}'
+        awk '{for(i=2; i<=NF; i++) print $1 "," $i}'
 }
 function retrieve_commit_repositories {
     err_echo [[ retrieving commit repositories ]]
@@ -205,8 +206,8 @@ function process_repository {
     retrieve_commit_file_modification_hashes > "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}"
     retrieve_commit_comments                 > "$OUTPUT_DIR/commit_comments/$sorting_dir/${filename}"
     retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/$sorting_dir/${filename}"
-    retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/$sorting_dir/${filename}"
-    retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/$sorting_dir/${filename}"
+    #retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/$sorting_dir/${filename}"
+    #retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/$sorting_dir/${filename}"
 
     number_of_files=$(< "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}" wc -l)
     number_of_commits=$(< "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}" wc -l)

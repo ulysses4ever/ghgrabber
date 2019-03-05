@@ -37,5 +37,6 @@ NR > 1 {
    
     # print out the line in quotes
     ###print quote($1), quote($2), quote(body);
-    print quote($1), quote(escape($2));
+    #print quote($1), quote(escape($2));
+    print $1, quote(escape($2));
 }

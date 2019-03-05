@@ -39,6 +39,9 @@ function escape(string) {
     return string
 }
 
+# First line is always empty
+NR==1 { next }
+
 # for each input record
 {
     # first split the second field into separate lines
@@ -54,7 +57,9 @@ function escape(string) {
 
             # for each modified file output the hash of the commit, and the
             # stat info for the file
-            print quote($1) , quote(statline[3]), quote(statline[4]), quote(statline[5]), quote(escape(statline[6]));
+            #print quote($1) , quote(statline[3]), quote(statline[4]), quote(statline[5]), quote(escape(statline[6]));
+
+            print $1 , statline[4], quote(statline[5]), quote(escape(statline[6]));
         }
     }
 }
