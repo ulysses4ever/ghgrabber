@@ -145,7 +145,7 @@ function download_repo_contents {
 function retrieve_commit_metadata {
     err_echo [[ retrieving commit metadata ]]
     echo '"hash","author name","author email","author timestamp","committer name","committer email","committer timestamp","tag"'
-    git log --pretty=format:'"%H","%an","%ae","%at","%cn","%ce","%ct","%s","%D"' --all 
+    git log --pretty=format:'"%H","%an","%ae","%at","%cn","%ce","%ct","%D"' --all 
 }
 function retrieve_commit_file_modification_info {
     err_echo [[ retrieving commit file modification info ]]
@@ -161,8 +161,8 @@ function retrieve_commit_file_modification_hashes {
 }
 function retrieve_commit_comments {
     err_echo [[ retrieving commit messages ]]
-    echo '"hash","topic","message"'
-    git log --pretty=format:"-----%H:::%s:::%B"  --all | \
+    echo '"hash","message"'
+    git log --pretty=format:"-----%H:::%B"  --all | \
         awk -f "${GHGRABBER_HOME}/awk/comment.awk"
 }
 function retrieve_commit_parents {

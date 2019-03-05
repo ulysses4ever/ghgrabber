@@ -3,7 +3,8 @@
 BEGIN {
     # the input format is  specified as follows:
     #
-    #   -----$1:::$2:::$3
+    # ###  -----$1:::$2:::$3
+    # -----$1:::$3
     #
     # where $1 is a hash, $2 is a one-line 
     FS=":::"; 
@@ -31,9 +32,10 @@ function escape(string) {
 NR > 1 {
     # reformat body and subject in three steps: replace slashes with double
     # slashes, escape newlines, and escape double quotes
-    subject=escape($2);
-    body=escape($3);
+    ###subject=escape($2);
+    i###body=escape($3);
    
     # print out the line in quotes
-    print quote($1), quote($2), quote(body);
+    ###print quote($1), quote($2), quote(body);
+    print quote($1), quote(escape($2));
 }
