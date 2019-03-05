@@ -2,25 +2,22 @@
 
 # Timing helper functions
 function timing_init   { 
-    echo "\"$1\",\"$2\",\"time\",\"status\"" > "$3"; 
+    echo '"id","user","repo","timestamp","elapsed time","status","commits","files","size"' > "$1"; 
 }
-function timing_start  { date +%s; }
-function timing_end    { date +%s; }
+function timing_start  { date +%s%3N; } # miliseconds
+function timing_end    { date +%s%3N; } # miliseconds
 function timing_print  {
     local time="$1"
 
-    local hours=$((time/60/60))
-    local minutes=$(((time/60)%60))
-    local seconds=$((time%60))
+    local hours=$(printf "%02d" $((time/60/60/1000)))
+    local minutes=$(printf "%02d" $(((time/60/1000)%60)))
+    local seconds=$(printf "%02d" $(((time/1000)%60)))
+    local miliseconds=$(printf "%03d" $((time%1000)))
 
-    local sec_extra_zero=`((seconds > 9)) && echo -n "" || echo -n 0`
-    local min_extra_zero=`((minutes > 9)) && echo -n "" || echo -n 0`
-
-    echo ${hours}:${min_extra_zero}${minutes}:${sec_extra_zero}${seconds}
+    echo -n ${hours}:${minutes}:${seconds}.${miliseconds}
 }
 function timing_output { 
-    echo "\"${1}\"","\"${2}\"",$(timing_print $((${4} - ${3}))),${5} \
-        >> "$6"
+    echo "${2},\"${3}\"","\"${4}\"",${6},$(timing_print $((${6} - ${5}))),${7},${8},${9},${10} >> "${1}"
 }
 
 # Misc. auxiliary functions.
@@ -66,6 +63,7 @@ function sequence_current_value {
         cat "$1"
         return $?
     else
+        err_echo bbb
         echo "File '$1' does not exist" >&2
         echo "  - returning 0, but this is a fake value" >&2
         echo -n 0
@@ -210,6 +208,10 @@ function process_repository {
     retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/$sorting_dir/${filename}"
     retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/$sorting_dir/${filename}"
 
+    number_of_files=$(< "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}" wc -l)
+    number_of_commits=$(< "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}" wc -l)
+    repository_size=$(du -s . | cut -f 1)
+
     cd "$GHGRABBER_HOME"
 
     if [ -n ${repository_path} ]
@@ -220,14 +222,29 @@ function process_repository {
             rm -rf "${repository_path}"
         fi
     fi
+    return 0
+}
+
+function retrieve_repository_stats {
+    local filename="${1}_${2}.csv"
+    local sorting_dir="$(expr substr ${1} 1 3)"
+    local number_of_files=$(< "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}" wc -l 2>/dev/null || )
+    local number_of_commits=$(< "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}" wc -l 2>/dev/null )
+    local repository_size=$(du -s . | cut -f 1)
+    echo -n "${number_of_files},${number_of_commits},${repository_size}"
 }
 
 # Pre-process arguments and start processing a single repository.
 function download_and_analyze_repository {
+
+    err_echo [[ starting new task ]]
+
     local processed=$(sem --id ghgrabber_sequence sequence_next_value "$SEQUENCE")
     local info="$1"
 
     ECHO_PREFIX="task ${processed}: $info"
+    
+    err_echo [[ processing $processed: $info "(pid=$$)" ]]
 
     if [ -e "STOP" ]
     then
@@ -235,18 +252,28 @@ function download_and_analyze_repository {
         exit 1
     fi
 
-    err_echo [[ processing $processed: $info "(pid=$$)" ]]
-
     user=$(echo $info | cut -f1 -d/)
     repo=$(echo $info | cut -f2 -d/)
+
+    number_of_files=0
+    number_of_commits=0
+    repository_size=0
     
     local start_time=$(timing_start)
+
     process_repository "$user" "$repo" "$processed"
+
     local status=$?
     local end_time=$(timing_end)
 
+    #IFS=, read number_of_files number_of_commits repository_size <<<$(retrieve_repository_stats "$user" "$repo")
+
     sem --id ghgrabber_timing \
-    timing_output "$user" "$repo" "$start_time" "$end_time" "$status" "$OUTPUT_DIR/timing.csv" 
+    timing_output "$OUTPUT_DIR/timing.csv" \
+        "$processed" "$user" "$repo" \
+        "$start_time" "$end_time" \
+        "$status" \
+        "$number_of_files" "$number_of_commits" "$repository_size" 
 
     err_echo [[ done with status $? ]]
     return 0
@@ -272,6 +299,7 @@ export -f retrieve_commit_parents
 export -f retrieve_commit_repositories
 export -f retrieve_repository_info
 export -f process_repository
+export -f retrieve_repository_stats
 export -f download_and_analyze_repository
 export -f sequence_new
 export -f sequence_current_value
@@ -280,10 +308,9 @@ export -f sequence_next_value
 # Main.
 prepare_globals "$@"
 prepare_directories
-timing_init "user" "repo" "$OUTPUT_DIR/timing.csv"
+timing_init "$OUTPUT_DIR/timing.csv"
 
 echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
 echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
 
-#<"$REPOS_LIST" parallel -v -k --ungroup --halt soon,fail=1 -j $PROCESSES download_and_analyze_repository 
 <"$REPOS_LIST" parallel -v -k --ungroup -j $PROCESSES download_and_analyze_repository 
