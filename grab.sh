@@ -63,7 +63,6 @@ function sequence_current_value {
         cat "$1"
         return $?
     else
-        err_echo bbb
         echo "File '$1' does not exist" >&2
         echo "  - returning 0, but this is a fake value" >&2
         echo -n 0
