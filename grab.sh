@@ -117,13 +117,13 @@ function prepare_globals {
     sequence_new "$SEQUENCE" 0
 }
 function prepare_directories {
-    mkdir -p "$OUTPUT_DIR/commit_metadata"
-    #mkdir -p "$OUTPUT_DIR/commit_files"
-    mkdir -p "$OUTPUT_DIR/commit_file_hashes"
-    mkdir -p "$OUTPUT_DIR/commit_comments"
-    mkdir -p "$OUTPUT_DIR/commit_parents"
-    mkdir -p "$OUTPUT_DIR/commit_repositories"
-    mkdir -p "$OUTPUT_DIR/repository_info"
+    mkdir -p "$OUTPUT_DIR/commit_metadata/$1"
+    #mkdir -p "$OUTPUT_DIR/commit_files/$1"
+    mkdir -p "$OUTPUT_DIR/commit_file_hashes/$1"
+    mkdir -p "$OUTPUT_DIR/commit_comments/$1"
+    mkdir -p "$OUTPUT_DIR/commit_parents/$1"
+    mkdir -p "$OUTPUT_DIR/commit_repositories/$1"
+    mkdir -p "$OUTPUT_DIR/repository_info/$1"
 }
 
 # Function for downloading the contents of one repository.
@@ -199,13 +199,16 @@ function process_repository {
 
     cd "${repository_path}"
 
-    retrieve_commit_metadata                 > "$OUTPUT_DIR/commit_metadata/${filename}"
-    #retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/${filename}"
-    retrieve_commit_file_modification_hashes > "$OUTPUT_DIR/commit_file_hashes/${filename}"
-    retrieve_commit_comments                 > "$OUTPUT_DIR/commit_comments/${filename}"
-    retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/${filename}"
-    retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/${filename}"
-    retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/${filename}"
+    local sorting_dir="$(expr substr $user 1 3)"
+    prepare_directories "$sorting_dir"
+
+    retrieve_commit_metadata                 > "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}"
+    #retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/$sorting_dir/${filename}"
+    retrieve_commit_file_modification_hashes > "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}"
+    retrieve_commit_comments                 > "$OUTPUT_DIR/commit_comments/$sorting_dir/${filename}"
+    retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/$sorting_dir/${filename}"
+    retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/$sorting_dir/${filename}"
+    retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/$sorting_dir/${filename}"
 
     cd "$GHGRABBER_HOME"
 
