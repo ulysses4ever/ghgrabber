@@ -38,6 +38,20 @@ function use_first_if_available {
 
 # Sequence control.
 function sequence_new {
+    dir=`dirname "$1"`
+    mkdir -p "$dir"
+
+    if [ -d "$dir" ]
+    then
+        :
+    else
+        echo "Cannot create '$1', because the directory cannot be created:" >&2
+        echo "  - not creating a new sequence" >&2
+        echo "  - not safe to continue, must terminate" >&2
+        echo "  - attempting to terminate" >&2
+        exit 404       
+    fi
+
     if [ -z "$2" ]
     then
         value=0
