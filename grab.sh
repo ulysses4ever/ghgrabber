@@ -169,7 +169,7 @@ function retrieve_commit_file_modification_hashes {
     #echo '"hash","source file hash","current file hash","status code","file"'
     echo '"hash","file hash","status code","filename","old filename"'
     git log --format="%n%n%h" --raw --abbrev=40 --all -M -C | \
-        tail -n +2 | \
+        tail -n +3 | \
         awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }
 function retrieve_commit_comments {
