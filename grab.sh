@@ -20,6 +20,19 @@ function timing_output {
     echo "${2},\"${3}\"","\"${4}\"",${6},$(timing_print $((${6} - ${5}))),${7},${8},${9},${10} >> "${1}"
 }
 
+# Function writing a specification certificate. It will be attached to data and
+# will make it easier to figure out where and when the data came from.
+
+function prepare_specification_certificate {
+    echo date=$(date)
+    echo user=$(whoami)
+    echo hostnamer=$(hostname)
+    echo ghgrabber verr=$(git log -n 1 --format=%H)
+}
+function write_specification_certificate {
+    prepare_specification_certificate > "$OUTPUT_DIR/spec_cert.conf"
+}
+
 # Misc. auxiliary functions.
 function escape_quotes {
     echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
@@ -46,7 +59,7 @@ function sequence_new {
         :
     else
         echo "Cannot create '$1', because the directory cannot be created:" >&2
-        echo "  - not creating a new sequence" >&2
+        cho "  - not creating a new sequence" >&2
         echo "  - not safe to continue, must terminate" >&2
         echo "  - attempting to terminate" >&2
         exit 404       
@@ -324,6 +337,8 @@ export -f sequence_next_value
 prepare_globals "$@"
 prepare_directories
 timing_init "$OUTPUT_DIR/timing.csv"
+
+write_specification_certificate
 
 echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
 echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
