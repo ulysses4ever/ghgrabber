@@ -14,6 +14,7 @@ BEGIN {
     # :100755 000000 0579880c328da8c2b80dc128164f574b1bca1211 0000000000000000000000000000000000000000 D      numstat.awk
     # :100644 000000 14f84e205c296e705c26f1a541c1c72830787b89 0000000000000000000000000000000000000000 D      retrieve_starred_repos.r
     # :100644 000000 b1755b53d248aa65d144eca3e102e1420ac2a22b 0000000000000000000000000000000000000000 D      schema.sql
+    # :100644 100644 de03518b6444cff4d9238663edf2cc81e59efd63 f21fad67b78973ee6e82766a3f5e1635275ea261 R071   test/child-process-follows.js   test/child-process-follow.js
     #
     #
     FS="\n\n";
@@ -28,7 +29,7 @@ BEGIN {
 } 
 
 # auxiliary function to add quotes around strings
-function quote(string) { return "\"" string "\"" }
+function quote(string) { return "\"" string "\""; }
 
 # auxiliary function that reformats a string by escaping slashes, double
 # quotes, and newlines
@@ -36,11 +37,23 @@ function escape(string) {
     gsub("\\", "\\\\", string);
     gsub("\n", "\\n", string);
     gsub("\"", "\\\"", string);
-    return string
+    return string;
 }
 
-# First line is always empty
-NR==1 { next }
+# auxiliary function thta checks whether a string is surrounded by quotes
+function is_quoted(string) {
+    return match(string, /^\".*\"$/);
+}
+
+# auxiliary function to add quotes around strings, but only if the string is
+# not already quoted
+function quote_if_needed(string) {
+    if (is_quoted(string) == 0) {
+        return quote(string);
+    } else {
+        return string;
+    }
+}
 
 # for each input record
 {
@@ -59,7 +72,7 @@ NR==1 { next }
             # stat info for the file
             #print quote($1) , quote(statline[3]), quote(statline[4]), quote(statline[5]), quote(escape(statline[6]));
 
-            print $1 , statline[4], quote(statline[5]), quote(escape(statline[6]));
+            print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[6])
         }
     }
 }
