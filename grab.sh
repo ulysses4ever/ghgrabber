@@ -28,6 +28,9 @@ function prepare_specification_certificate {
     echo user=$(whoami)
     echo hostname=$(hostname)
     echo ghgrabber_ver=$(git log -n 1 --format=%H)
+    echo repos_list=$REPOS_LIST
+    echo output_dir=$OUTPUT_DIR
+    echo processes=$PROCESSES
 }
 function write_specification_certificate {
     prepare_specification_certificate > "$OUTPUT_DIR/spec_cert.conf"
@@ -340,7 +343,13 @@ timing_init "$OUTPUT_DIR/timing.csv"
 
 write_specification_certificate
 
-echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
-echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
+err_echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
+err_echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
+
+
+err_echo [[ started downloading on `date` ]]
 
 <"$REPOS_LIST" parallel -v -k --ungroup -j $PROCESSES download_and_analyze_repository 
+
+err_echo [[ finished downloading on `date` ]]
+
