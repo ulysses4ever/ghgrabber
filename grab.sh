@@ -26,8 +26,8 @@ function timing_output {
 function prepare_specification_certificate {
     echo date=$(date)
     echo user=$(whoami)
-    echo hostnamer=$(hostname)
-    echo ghgrabber verr=$(git log -n 1 --format=%H)
+    echo hostname=$(hostname)
+    echo ghgrabber_ver=$(git log -n 1 --format=%H)
 }
 function write_specification_certificate {
     prepare_specification_certificate > "$OUTPUT_DIR/spec_cert.conf"
