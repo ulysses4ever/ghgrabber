@@ -160,15 +160,15 @@ function retrieve_commit_metadata {
 }
 function retrieve_commit_file_modification_info {
     err_echo [[ retrieving commit file modification info ]]
-    echo '"hash","added lines","deleted lines","file"'
-    git log --pretty=format:-----%H:::  --numstat --all | \
+    echo '"hash","added lines","deleted lines","filename","old filename"'
+    git log --pretty=format:-----%H:::  --numstat --all -M -C | \
         awk -f "${GHGRABBER_HOME}/awk/numstat.awk"
 }
 function retrieve_commit_file_modification_hashes {
     err_echo [[ retrieving commit file modification hashes ]]
     #echo '"hash","source file hash","current file hash","status code","file"'
-    echo '"hash","file hash","status code","file"'
-    git log --format="%n%n%h" --raw --abbrev=40 --all | \
+    echo '"hash","file hash","status code","filename","old filename"'
+    git log --format="%n%n%h" --raw --abbrev=40 --all -M -C | \
         tail -n +2 | \
         awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }

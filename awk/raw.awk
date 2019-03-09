@@ -16,7 +16,6 @@ BEGIN {
     # :100644 000000 b1755b53d248aa65d144eca3e102e1420ac2a22b 0000000000000000000000000000000000000000 D      schema.sql
     # :100644 100644 de03518b6444cff4d9238663edf2cc81e59efd63 f21fad67b78973ee6e82766a3f5e1635275ea261 R071   test/child-process-follows.js   test/child-process-follow.js
     #
-    #
     FS="\n\n";
     RS="\n\n\n"; 
     # so basically we're getting $1=hash, $2=all the changes, and then we can
@@ -72,7 +71,18 @@ function quote_if_needed(string) {
             # stat info for the file
             #print quote($1) , quote(statline[3]), quote(statline[4]), quote(statline[5]), quote(escape(statline[6]));
 
-            print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[6])
+            # this means that we have just one file name, the classic case
+	    if (length(statline) == 6) {
+                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[6]), ""
+
+            # this means we have a rename or copy situation where there is an old name and then a new name
+            } else if (length(statline) == 7) {
+                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[7]), quote_if_needed(statline[6])
+
+            # this means something is seriously wrong
+            } else {
+                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[7]), quote_if_needed(statline[6]), "# FORMAT ERROR: " length(statline) " fields"
+            }
         }
     }
 }

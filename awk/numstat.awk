@@ -34,6 +34,21 @@ function escape(string) {
     return string
 }
 
+# auxiliary function thta checks whether a string is surrounded by quotes
+function is_quoted(string) {
+    return match(string, /^\".*\"$/);
+}
+
+# auxiliary function to add quotes around strings, but only if the string is
+# not already quoted
+function quote_if_needed(string) {
+    if (is_quoted(string) == 0) {
+        return quote(string);
+    } else {
+        return string;
+    }
+}
+
 # for each input record
 {
     # first split the second field into separate lines
@@ -51,7 +66,21 @@ function escape(string) {
             # for each modified file output the hash of the commit, and the
             # stat info for the file
             #print quote($1) , statline[1], statline[2], quote(escape(statline[3]));
-            print $1, statline[1], statline[2], quote(escape(statline[3]));
+
+            # this means that we have just one file name, the classic case
+            if (length(statline) == 3) {
+                print $1, statline[1], statline[2], quote_if_needed(statline[3]), "";
+
+	    # this means we have a rename or copy situation where there is an
+	    # old name and then an arrow "=>" and a new name
+            } else if (length(statline) == 5) {
+                print $1, statline[1], statline[2], quote_if_needed(statline[5]), quote_if_needed(statline[3]);
+
+            # this means something is seriously wrong
+            } else {
+                print $1, statline[1], statline[2], quote_if_needed(statline[5]), quote_if_needed(statline[3]), "# FORMAT ERROR: " length(statline) " fields";
+            }
+
         }
     }
 }
