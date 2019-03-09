@@ -21,7 +21,6 @@ BEGIN {
     ORS="\n";
 
     message[1] = "";
-    first = true;
 } 
 
 # auxiliary function to add quotes around strings
@@ -53,17 +52,14 @@ function join(array, sep) {
 # joins the contents of the buffer and prints it out along with the current
 # hash
 function aggregate_and_print() {
-    #print "old hash: " hash " new hash: " $2 " message: " length(message) 
-    print hash, quote(escape(join(message, "\n")));
+    #print "old hash: " hash " new hash: " $2 " message: " length(message)
+    if (hash != "")
+        print hash, quote(escape(join(message, "\n")));
 }
 
 $0 ~ /^🐹 .{40}$/ {
     # aggregate collected message chunks and print out commit info
-    if (!first) {
-        aggregate_and_print();
-    } else {
-        first = false;
-    }
+    aggregate_and_print();
 
     # set new hash
     hash = $2
@@ -84,7 +80,5 @@ $0 ~ /^🐹 .{40}$/ {
 }
 
 END {
-    if (!first) {
-        aggregate_and_print();
-    }
+    aggregate_and_print();
 }
