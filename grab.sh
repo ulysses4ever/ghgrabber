@@ -175,7 +175,7 @@ function retrieve_commit_file_modification_hashes {
 function retrieve_commit_comments {
     err_echo [[ retrieving commit messages ]]
     echo '"hash","message"'
-    git log --pretty=format:"-----%H:::%B"  --all | \
+    git log --pretty=format:"🐹 %H%n%B"  --all | \
         awk -f "${GHGRABBER_HOME}/awk/comment.awk"
 }
 function retrieve_commit_parents {
