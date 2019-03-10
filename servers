@@ -1,5 +1,5 @@
 user,host,ip,location,chunk
-kondziu,sam-vimes,46.101.228.234,ghgrabber/data_00,00
+kondziu,elma,147.32.233.227,Workspace/ghgrabber/data_00,00
 kondziu,nobby-nobbs,134.209.91.80,ghgrabber/data_01,01
 kondziu,fred-colon,134.209.91.71,ghgrabber/data_02,02
 kondziu,cheery-littlebottom,134.209.91.74,ghgrabber/data_03,03
@@ -9,3 +9,5 @@ kondziu,detritus,134.209.91.77,ghgrabber/data_06,06
 kondziu,carrot,142.93.237.12,ghgrabber/data_07,07
 kondziu,lord-vetinari,68.183.33.140,ghgrabber/data_08,08
 kondziu,esmeralda-weatherwax,139.59.134.5,ghgrabber/data_09,09
+kondziu,lord-vetinari,68.183.33.140,ghgrabber/data_20,20
+kondziu,sam-vimes,46.101.228.234,ghgrabber/data_21,21
