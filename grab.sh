@@ -1,8 +1,14 @@
 #!/bin/bash
 
 # Timing helper functions
-function timing_init   { 
-    echo '"id","user","repo","timestamp","elapsed time","status","commits","files","size"' > "$1"; 
+function timing_init   {
+    if [ -e "$1" ]
+    then
+        err_echo [[ timing init file at $1 already exists, letting it be ]]
+    else 
+        err_echo [[ timing init file created at $1 ]]
+        echo '"id","user","repo","timestamp","elapsed time","status","commits","files","size"' > "$1"; 
+    fi
 }
 function timing_start  { date +%s%3N; } # miliseconds
 function timing_end    { date +%s%3N; } # miliseconds
@@ -161,6 +167,7 @@ function download_repo_contents {
     
     if [ $? -ne 0 ] 
     then
+        rmdir "$destination"
         return $?   
     fi
 
