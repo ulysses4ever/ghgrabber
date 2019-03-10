@@ -12,4 +12,4 @@ do
 done | \
 sort | uniq >"$temp_file"
 
-comm -12 <(sort "$1") "$temp_file" 
+comm -23 <(sort "$1") "$temp_file" 
