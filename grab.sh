@@ -179,7 +179,9 @@ function download_repo_contents {
 function retrieve_commit_metadata {
     err_echo [[ retrieving commit metadata ]]
     echo '"hash","author email","author timestamp","committer email","committer timestamp","tag"'
-    git log --pretty=format:'"%H","%ae","%at","%ce","%ct","%D"' --all 
+    #git log --pretty=format:'"%H","%ae","%at","%ce","%ct","%D"' --all 
+    git log --pretty=format:'%H%n%ae%n%at%n%ce%n%ct%n%D%n🐹%n%n' | \
+    awk -f "${GHGRABBER_HOME}/awk/metadata.awk"
 }
 function retrieve_commit_file_modification_info {
     err_echo [[ retrieving commit file modification info ]]
