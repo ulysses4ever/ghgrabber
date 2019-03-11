@@ -360,3 +360,8 @@ err_echo [[ started downloading on `date` ]]
 
 err_echo [[ finished downloading on `date` ]]
 
+err_echo [[ compress data ]]
+
+tar -czf "`dirname $OUTPUT_DIR`/`basename $OUTPUT_DIR/`.tar.gz" "$OUTPUT_DIR/"
+
+err_echo [[ done compressing data ]]
