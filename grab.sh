@@ -181,33 +181,33 @@ function retrieve_commit_metadata {
     echo '"hash","author email","author timestamp","committer email","committer timestamp","tag"'
     #git log --pretty=format:'"%H","%ae","%at","%ce","%ct","%D"' --all 
     git log --pretty=format:'%H%n%ae%n%at%n%ce%n%ct%n%D%n🐹%n%n' | \
-    awk -f "${GHGRABBER_HOME}/awk/metadata.awk"
+    AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/metadata.awk"
 }
 function retrieve_commit_file_modification_info {
     err_echo [[ retrieving commit file modification info ]]
     echo '"hash","added lines","deleted lines","filename","old filename"'
     git log --pretty=format:-----%H:::  --numstat --all -M -C | \
-        awk -f "${GHGRABBER_HOME}/awk/numstat.awk"
+    AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/numstat.awk"
 }
 function retrieve_commit_file_modification_hashes {
     err_echo [[ retrieving commit file modification hashes ]]
     #echo '"hash","source file hash","current file hash","status code","file"'
     echo '"hash","file hash","status code","filename","old filename"'
     git log --format="%n%n%h" --raw --abbrev=40 --all -M -C | \
-        tail -n +3 | \
-        awk -f "${GHGRABBER_HOME}/awk/raw.awk"
+    tail -n +3 | \
+    AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }
 function retrieve_commit_comments {
     err_echo [[ retrieving commit messages ]]
     echo '"hash","message"'
     git log --pretty=format:"🐹 %H%n%B"  --all | \
-        awk -f "${GHGRABBER_HOME}/awk/comment.awk"
+    AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/comment.awk"
 }
 function retrieve_commit_parents {
     err_echo [[ retrieving commit parents ]]
     echo '"child","parent"'
     git log --pretty=format:"%H %P" | \
-        awk '{for(i=2; i<=NF; i++) print $1 "," $i}'
+    AWKPATH="${GHGRABBER_HOME}/awk" awk '{for(i=2; i<=NF; i++) print $1 "," $i}'
 }
 function retrieve_commit_repositories {
     err_echo [[ retrieving commit repositories ]]

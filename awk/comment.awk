@@ -1,3 +1,5 @@
+@include "escape.awk"
+
 # this AWK script produces a CSV-like output with the hash of the commit, its
 # subject, and its commit message all in one line
 BEGIN {
@@ -20,34 +22,9 @@ BEGIN {
     OFS=",";
     ORS="\n";
 
+    # make sure the message variable is read as an array
     message[1] = "";
 } 
-
-# auxiliary function to add quotes around strings
-function quote(string) { return "\"" string "\"" }
-
-# auxiliary function that reformats a string by escaping slashes, double
-# quotes, and newlines
-function escape(string) {
-    gsub("\\", "\\\\", string);
-    gsub("\n", "\\n", string);
-    gsub("\"", "\\\"", string);
-    return string
-}
-
-# auxiliary function. awk has no join...
-function join(array, sep) {
-    if (length(array) == 0)
-        return "";
-
-    if (length(array) == 1)
-        return array[1];
-
-    result = array[1]
-    for (i = 2; i <= length(array); i++)
-        result = result sep array[i]
-    return result
-}
 
 # joins the contents of the buffer and prints it out along with the current
 # hash
@@ -62,11 +39,11 @@ $0 ~ /^🐹 .{40}$/ {
     aggregate_and_print();
 
     # set new hash
-    hash = $2
+    hash = $2;
 
     # clear the buffer
     for (key in message) 
-        delete message[key]
+        delete message[key];
 
     # skip to next line
     next;
@@ -74,7 +51,7 @@ $0 ~ /^🐹 .{40}$/ {
 
 {
     # put line into the buffer
-    l = length(message) + 1
+    l = length(message) + 1;
     message[l] = $0
     #print "message[" l "] = " $0;
 }

@@ -1,3 +1,5 @@
+@include "escape.awk"
+
 # an AWK script that transforms the output of git-log into a CSV-like output
 # containing the information about which file was modified by which commit and
 # specifically provides source and target hashes
@@ -26,35 +28,6 @@ BEGIN {
     OFS=",";
     ORS="\n";
 } 
-
-# auxiliary function to add quotes around strings
-function quote(string) { return "\"" string "\""; }
-
-# auxiliary function that reformats a string by escaping slashes, double
-# quotes, and newlines
-function escape(string) {
-    gsub("\\", "\\\\", string);
-    gsub("\n", "\\n", string);
-    gsub("\"", "\\\"", string);
-    return string;
-}
-
-# auxiliary function thta checks whether a string is surrounded by quotes
-function is_quoted(string) {
-    return match(string, /^\".*\"$/);
-}
-
-# auxiliary function to add quotes around strings, but only if the string is
-# not already quoted
-function quote_if_needed(string) {
-    if (string == "") {
-        return "";
-    } if (is_quoted(string) == 0) {
-        return quote(string);
-    } else {
-        return string;
-    }
-}
 
 # for each input record
 {
