@@ -66,25 +66,33 @@ function quote_if_needed(string) {
         if (stats[i] ~ "^ *$") {
             # ignore empty lines
         } else {
-            # split the statline into the individual bits:
-            split(stats[i], statline, /[ \t]+/);
+            # split the statline into columns: statline, filename1, filename2, where
+            # statline contains information about what was changed in the file;
+            # in most cases filename1 is the name of the file and filename2 is
+            # empty; if the file is moved or copied filename1 is the old name of
+            # the file, and filename2 is the new name of the file.
+            split(stats[i], columns, /[\t]+/);
 
-            # for each modified file output the hash of the commit, and the
-            # stat info for the file
-            #print quote($1) , quote(statline[3]), quote(statline[4]), quote(statline[5]), quote(escape(statline[6]));
+            # the first column should contain the changes to the file
+            # regardless of the situation, so it needs to be split. might as
+            # well write it once.
+            split(columns[1], statline, / +/);
+
+            # something went seriously wrong
+            if (length(statline) != 5) {
+                print $1, "", "", "", "", "# FORMAT ERROR: " length(statline) " fields";
+            }
 
             # this means that we have just one file name, the classic case
-	    if (length(statline) == 6) {
-                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[6]), ""
-
+            if (length(columns) == 2) {
+                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(columns[2]), "";
             # this means we have a rename or copy situation where there is an old name and then a new name
-            } else if (length(statline) == 7) {
-                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[7]), quote_if_needed(statline[6])
-
+            } else if (length(columns) == 3) {
+                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(columns[3]), quote_if_needed(columns[2]);
             # this means something is seriously wrong
             } else {
-                print $1, statline[4], quote_if_needed(statline[5]), quote_if_needed(statline[7]), quote_if_needed(statline[6]), "# FORMAT ERROR: " length(statline) " fields"
-            }
+                print $1, statline[4], quote_if_needed(statline[5]), "" , "", "# FORMAT ERROR: " length(columns) " fields";
+            } 
         }
     }
 }
