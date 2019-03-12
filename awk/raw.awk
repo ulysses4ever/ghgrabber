@@ -47,7 +47,9 @@ function is_quoted(string) {
 # auxiliary function to add quotes around strings, but only if the string is
 # not already quoted
 function quote_if_needed(string) {
-    if (is_quoted(string) == 0) {
+    if (string == "") {
+        return "";
+    } if (is_quoted(string) == 0) {
         return quote(string);
     } else {
         return string;
