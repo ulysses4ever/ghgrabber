@@ -1,7 +1,7 @@
 @include "escape.awk"
 
 BEGIN {
-    OFS=".";
+    OFS=",";
     ORS="\n";
 
     # output header
