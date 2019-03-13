@@ -306,8 +306,6 @@ function download_and_analyze_repository {
     local status=$?
     local end_time=$(timing_end)
 
-    #IFS=, read number_of_files number_of_commits repository_size <<<$(retrieve_repository_stats "$user" "$repo")
-
     sem --id ghgrabber_timing \
     timing_output "$OUTPUT_DIR/timing.csv" \
         "$processed" "$user" "$repo" \
@@ -317,6 +315,13 @@ function download_and_analyze_repository {
 
     err_echo [[ done with status $? ]]
     return 0
+}
+
+# Compress data into a tarball
+function compress_data {
+    cd "$OUTPUT_DIR/"
+    tar -czf "../$(basename $OUTPUT_DIR/).tar.gz" *
+    cd "$GHGRABBER_HOME"
 }
 
 # Export all the functions that parallel needs.
@@ -355,7 +360,6 @@ write_specification_certificate
 err_echo [[ downloading repos from "'$REPOS_LIST'" to "'$OUTPUT_DIR'" using $PROCESSES processes ]]
 err_echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
 
-
 err_echo [[ started downloading on `date` ]]
 
 <"$REPOS_LIST" parallel -v -k --ungroup -j $PROCESSES download_and_analyze_repository 
@@ -364,6 +368,6 @@ err_echo [[ finished downloading on `date` ]]
 
 err_echo [[ compress data ]]
 
-tar -czf "`dirname $OUTPUT_DIR`/`basename $OUTPUT_DIR/`.tar.gz" "$OUTPUT_DIR/"
+compress_data
 
 err_echo [[ done compressing data ]]
