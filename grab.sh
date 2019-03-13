@@ -178,7 +178,7 @@ function download_repo_contents {
 # Functions for retrieving specific bits of information form one repository.
 function retrieve_commit_metadata {
     err_echo [[ retrieving commit metadata ]]
-    git log --pretty=format:'%H%n%ae%n%at%n%ce%n%ct%n%D%n🐹%n%n' -all | \
+    git log --pretty=format:'%H%n%ae%n%at%n%ce%n%ct%n%D%n🐹%n%n' --all | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/metadata.awk"
 }
 function retrieve_commit_file_modification_info {
@@ -199,7 +199,7 @@ function retrieve_commit_comments {
 }
 function retrieve_commit_parents {
     err_echo [[ retrieving commit parents ]]
-    git log --pretty=format:"%H %P" -all | \
+    git log --pretty=format:"%H %P" --all | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/parents.awk"
 }
 function retrieve_commit_repositories {
