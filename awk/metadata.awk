@@ -5,6 +5,9 @@ BEGIN {
     RS="\n\n\n";
     OFS=",";
     ORS="\n";
+
+    # output header
+    print quote("hash"), quote("author email"), quote("author time"), quote("committer email"), quote("committer time"), quote("tag")
 }
 
 {

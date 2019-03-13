@@ -24,6 +24,9 @@ BEGIN {
 
     # make sure the message variable is read as an array
     message[1] = "";
+
+    # output header
+    print quote("hash"),quote("message") 
 } 
 
 # joins the contents of the buffer and prints it out along with the current

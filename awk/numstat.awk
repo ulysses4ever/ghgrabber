@@ -22,6 +22,9 @@ BEGIN {
     # separated by new lines
     OFS=",";
     ORS="\n";
+
+    # output header
+    print quote("hash"), quote("added lines"), quote("deleted lines"), quote("filename"), quote("old filename")
 } 
 
 # for each input record
