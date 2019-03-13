@@ -178,41 +178,34 @@ function download_repo_contents {
 # Functions for retrieving specific bits of information form one repository.
 function retrieve_commit_metadata {
     err_echo [[ retrieving commit metadata ]]
-    #echo '"hash","author email","author timestamp","committer email","committer timestamp","tag"'
-    #git log --pretty=format:'"%H","%ae","%at","%ce","%ct","%D"' --all 
-    git log --pretty=format:'%H%n%ae%n%at%n%ce%n%ct%n%D%n🐹%n%n' | \
+    git log --pretty=format:'%H%n%ae%n%at%n%ce%n%ct%n%D%n🐹%n%n' -all | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/metadata.awk"
 }
 function retrieve_commit_file_modification_info {
     err_echo [[ retrieving commit file modification info ]]
-    #echo '"hash","added lines","deleted lines","filename","old filename"'
     git log --pretty=format:-----%H:::  --numstat --all -M -C | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/numstat.awk"
 }
 function retrieve_commit_file_modification_hashes {
     err_echo [[ retrieving commit file modification hashes ]]
-    #echo '"hash","source file hash","current file hash","status code","file"'
-    #echo '"hash","file hash","status code","filename","old filename"'
     git log --format="%n%n%h" --raw --abbrev=40 --all -M -C | \
     tail -n +3 | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }
 function retrieve_commit_comments {
     err_echo [[ retrieving commit messages ]]
-    #echo '"hash","message"'
     git log --pretty=format:"🐹 %H%n%B"  --all | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/comment.awk"
 }
 function retrieve_commit_parents {
     err_echo [[ retrieving commit parents ]]
-    #echo '"child","parent"'
-    git log --pretty=format:"%H %P" | \
+    git log --pretty=format:"%H %P" -all | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/parents.awk"
 }
 function retrieve_commit_repositories {
     err_echo [[ retrieving commit repositories ]]
     echo '"hash","id"'
-    git log --pretty=format:"\"%H\",$1"
+    git log --pretty=format:"\"%H\",$1" --all
 }
 function retrieve_repository_info {
     err_echo [[ retrieving repository info ]]
