@@ -157,6 +157,8 @@ function prepare_directories {
     mkdir -p "$OUTPUT_DIR/commit_parents/$1"
     #mkdir -p "$OUTPUT_DIR/commit_repositories/$1"
     #mkdir -p "$OUTPUT_DIR/repository_info/$1"
+    mkdir -p "$OUTPUT_DIR/submodule_history/$1"
+    mkdir -p "$OUTPUT_DIR/submodule_museum/$1/$2"
 }
 
 # Function for downloading the contents of one repository.
@@ -188,7 +190,7 @@ function retrieve_commit_file_modification_info {
 }
 function retrieve_commit_file_modification_hashes {
     err_echo [[ retrieving commit file modification hashes ]]
-    git log --format="%n%n%h" --raw --abbrev=40 --all -M -C | \
+    git log --format="%n%n%H" --raw --abbrev=40 --all -M -C | \
     tail -n +3 | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }
@@ -212,6 +214,30 @@ function retrieve_repository_info {
     echo '"id","user","project"'
     echo "${3},\"${1}\",\"${2}\""
 }
+function retrieve_submodule_history {
+    err_echo [[ retrieving submodule history ]]
+    git log --format="%n%n%H" --full-history --abbrev=40 --raw --all -M -C -- .gitmodules | \
+    tail -n +3 | \
+    AWKPATH="${GHGRABBER_HOME}/awk" awk -v OFS=, -v header=1 -f "${GHGRABBER_HOME}/awk/submodules.awk" 
+}
+
+function make_submodule_museum {
+    err_echo [[ creating submodule museum ]]
+    git log --format="%n%n%H" --full-history --abbrev=40 --raw --all -M -C -- .gitmodules | \
+    tail -n +3 | \
+    AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/submodules.awk" | \
+    while read commit file
+    do
+        echo commit: $commit
+        echo file: $file
+        if [ "$file" == 0000000000000000000000000000000000000000 ]
+        then
+            echo "" > "$1/$commit"
+        else
+            git cat-file -p "$file" > "$1/$commit"
+        fi
+    done
+}
 
 # Scrape one repository using the functions above.
 function process_repository {
@@ -231,7 +257,7 @@ function process_repository {
     cd "${repository_path}"
 
     local sorting_dir="$(expr substr $user 1 3)"
-    prepare_directories "$sorting_dir"
+    prepare_directories "${sorting_dir}" "${user}_${repo}"
 
     retrieve_commit_metadata                 > "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}"
     #retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/$sorting_dir/${filename}"
@@ -240,6 +266,9 @@ function process_repository {
     retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/$sorting_dir/${filename}"
     #retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/$sorting_dir/${filename}"
     #retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/$sorting_dir/${filename}"
+    retrieve_submodule_history               > "$OUTPUT_DIR/submodule_history/$sorting_dir/${filename}"
+
+    make_submodule_museum "$OUTPUT_DIR/submodule_museum/$sorting_dir/${user}_${repo}/"
 
     number_of_files=$(< "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}" wc -l)
     number_of_commits=$(< "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}" wc -l)
@@ -336,6 +365,8 @@ export -f retrieve_commit_comments
 export -f retrieve_commit_parents
 export -f retrieve_commit_repositories
 export -f retrieve_repository_info
+export -f retrieve_submodule_history
+export -f make_submodule_museum
 export -f process_repository
 export -f retrieve_repository_stats
 export -f download_and_analyze_repository
