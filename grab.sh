@@ -157,7 +157,7 @@ function prepare_directories {
     mkdir -p "$OUTPUT_DIR/commit_parents/$1"
     #mkdir -p "$OUTPUT_DIR/commit_repositories/$1"
     #mkdir -p "$OUTPUT_DIR/repository_info/$1"
-    mkdir -p "$OUTPUT_DIR/submodule_history/$1"
+    #mkdir -p "$OUTPUT_DIR/submodule_history/$1"
     mkdir -p "$OUTPUT_DIR/submodule_museum/$1/$2"
 }
 
@@ -266,7 +266,7 @@ function process_repository {
     retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/$sorting_dir/${filename}"
     #retrieve_commit_repositories $i          > "$OUTPUT_DIR/commit_repositories/$sorting_dir/${filename}"
     #retrieve_repository_info $user $repo $i  > "$OUTPUT_DIR/repository_info/$sorting_dir/${filename}"
-    retrieve_submodule_history               > "$OUTPUT_DIR/submodule_history/$sorting_dir/${filename}"
+    #retrieve_submodule_history               > "$OUTPUT_DIR/submodule_history/$sorting_dir/${filename}"
 
     make_submodule_museum "$OUTPUT_DIR/submodule_museum/$sorting_dir/${user}_${repo}/"
 
