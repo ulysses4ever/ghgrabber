@@ -190,7 +190,7 @@ function retrieve_commit_file_modification_info {
 }
 function retrieve_commit_file_modification_hashes {
     err_echo [[ retrieving commit file modification hashes ]]
-    git log --format="%n%n%H" --raw --abbrev=40 --all -M -C | \
+    git log --format="%n%n%H" --raw --no-abbrev --all -M -C -m | \
     tail -n +3 | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/raw.awk"
 }
@@ -216,14 +216,14 @@ function retrieve_repository_info {
 }
 function retrieve_submodule_history {
     err_echo [[ retrieving submodule history ]]
-    git log --format="%n%n%H" --full-history --abbrev=40 --raw --all -M -C -- .gitmodules | \
+    git log --format="%n%n%H" --full-history --no-abbrev --raw --all -M -C -m -- .gitmodules | \
     tail -n +3 | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -v OFS=, -v header=1 -f "${GHGRABBER_HOME}/awk/submodules.awk" 
 }
 
 function make_submodule_museum {
     err_echo [[ creating submodule museum ]]
-    git log --format="%n%n%H" --full-history --abbrev=40 --raw --all -M -C -- .gitmodules | \
+    git log --format="%n%n%H" --full-history --no-abbrev --raw --all -M -C -m -- .gitmodules | \
     tail -n +3 | \
     AWKPATH="${GHGRABBER_HOME}/awk" awk -f "${GHGRABBER_HOME}/awk/submodules.awk" | \
     while read commit file
