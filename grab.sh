@@ -234,7 +234,12 @@ function make_submodule_museum {
         then
             echo "" > "$1/$commit"
         else
-            git cat-file -p "$file" > "$1/$commit"
+            filename="$1/$commit"
+            while [ -e "$filename" ]
+            do
+                filename="${filename}_"
+            done            
+            git cat-file -p "$file" > "$filename"
         fi
     done
 }
