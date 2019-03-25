@@ -20,7 +20,7 @@ runuser -l kondziu -c 'screen -S ghgrabber'
 To run chunk X:
 
 ```
-CHUNK=
+CHUNK=16
 cd /home/kondziu/ghgrabber
 ./start_chunk.sh $CHUNK
 ```
