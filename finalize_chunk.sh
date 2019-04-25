@@ -1,5 +1,5 @@
 #!/bin/bash
-take=4
+take=ghtorrent
 
 if [ -n "$1" ] 
 then
