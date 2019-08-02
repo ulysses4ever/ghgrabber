@@ -151,7 +151,7 @@ function prepare_globals {
 }
 function prepare_directories {
     mkdir -p "$OUTPUT_DIR/commit_metadata/$1"
-    #mkdir -p "$OUTPUT_DIR/commit_files/$1"
+    mkdir -p "$OUTPUT_DIR/commit_files/$1"
     mkdir -p "$OUTPUT_DIR/commit_file_hashes/$1"
     mkdir -p "$OUTPUT_DIR/commit_comments/$1"
     mkdir -p "$OUTPUT_DIR/commit_parents/$1"
@@ -261,11 +261,11 @@ function process_repository {
 
     cd "${repository_path}"
 
-    local sorting_dir="$(expr substr $user 1 3)"
+    local sorting_dir="" # "$(expr substr $user 1 3)"
     prepare_directories "${sorting_dir}" "${user}_${repo}"
 
     retrieve_commit_metadata                 > "$OUTPUT_DIR/commit_metadata/$sorting_dir/${filename}"
-    #retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/$sorting_dir/${filename}"
+    retrieve_commit_file_modification_info   > "$OUTPUT_DIR/commit_files/$sorting_dir/${filename}"
     retrieve_commit_file_modification_hashes > "$OUTPUT_DIR/commit_file_hashes/$sorting_dir/${filename}"
     retrieve_commit_comments                 > "$OUTPUT_DIR/commit_comments/$sorting_dir/${filename}"
     retrieve_commit_parents                  > "$OUTPUT_DIR/commit_parents/$sorting_dir/${filename}"
@@ -391,7 +391,7 @@ err_echo [[ `< "$REPOS_LIST" wc -l` total repositories to download ]]
 
 err_echo [[ started downloading on `date` ]]
 
-<"$REPOS_LIST" parallel -v -k --ungroup -j $PROCESSES download_and_analyze_repository 
+<"$REPOS_LIST" parallel -v -k --ungroup -j $PROCESSES download_and_analyze_repository 2>/dev/null
 
 err_echo [[ finished downloading on `date` ]]
 
